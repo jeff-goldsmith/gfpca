@@ -21,7 +21,7 @@
 #' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de}
 #' 
 #' @importFrom splines bs
-#' @importFrom rstan sampling
+#' @importFrom rstan sampling extract
 #' @export
 #' 
 #' @examples
