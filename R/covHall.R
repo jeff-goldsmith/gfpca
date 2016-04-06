@@ -1,19 +1,22 @@
 #' covHall
 #' 
-#' Internal function used to compute the latent covariance
+#' Internal function for estimation of the covariance matrix of the latent 
+#' process using the Hall et al. approach
 #' 
-#' @param data
-#' @param u
-#' @param bf
-#' @param pve
-#' @param spectral_decomp
-#' @param eps
-#' @param nu
-#' @param mu.fit
+#' @param data tha data as described in \code{\link{gfpca_Mar}}, 
+#' \code{\link{gfpca_TwoStep}}, and \code{\link{gfpca_Bayes}}
+#' @param u grid for evaluation
+#' @param bf number of basis functions for smoothing
+#' @param pve percentage of explained variance
+#' @param eps small constant used for the diagonal if diagonal elements are smaller
+#' @param nu additional shrinkage parameter for the estimated mean function (should
+#' usually be 1)
+#' @param mu.fit fitted mean function (if available)
 #' 
-#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de}
+#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de} and 
+#' Ana-Maria Staicu \email{astaicu@@ncsu.edu}
 #' 
-covHall <- function(data, u, bf=10, pve=.9, spectral_decomp=T, eps=0.01, nu=1,
+covHall <- function(data, u, bf=10, pve=.9, eps=0.01, nu=1,
                     mu.fit=NULL){
   
   Y.vec <- data['.value'][[1]]
