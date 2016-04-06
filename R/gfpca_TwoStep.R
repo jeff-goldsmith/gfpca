@@ -169,8 +169,7 @@ gfpca_TwoStep <-  function(data, npc=NULL, pve=.9, grid=NULL, type=c("approx", "
   else if (type=="approx")
     {
       # use HMY approach to estimate the eigenfunctions
-      hmy_cov <- covHall(data=data, u=grid, bf=10, pve=pve, eps=0.01, nu=1,
-      spectral_decomp=T)
+      hmy_cov <- covHall(data=data, u=grid, bf=10, pve=pve, eps=0.01, nu=1)
 
       # obtain spectral decomposition of the covariance of X
       eigen_HMY = eigen(hmy_cov)

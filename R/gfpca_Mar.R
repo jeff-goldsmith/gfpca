@@ -137,7 +137,7 @@ gfpca_Mar <- function(data, npc=NULL, pve=.9, grid=NULL, type=c("approx", "naive
     {
       # use HMY approach to estimate the eigenfunctions
       hmy_cov <- covHall(data=data, u=grid, bf=10, pve=pve, eps=0.01,
-      mu.fit=mu.fit, spectral_decomp=T)
+                         mu.fit=mu.fit)
 
       # obtain spectral decomposition of the covariance of X
       eigen_HMY = eigen(hmy_cov)
