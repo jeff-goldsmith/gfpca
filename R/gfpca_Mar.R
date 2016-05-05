@@ -1,36 +1,29 @@
 #' gfpca_Mar
 #' 
-#' Implements a marginal approach to generalized functional principal components analysis for 
-#' sparsely observed binary curves
+#' Implements a marginal approach to generalized functional principal
+#' components analysis for sparsely observed binary curves
 #' 
-#' @param data A dataframe containing observed data. Should have column names \code{.index} 
-#' for observation times, \code{.value} for observed responses, and \code{.id} for curve
-#' indicators. 
-#' @param pve proportion of variance explained; used to choose the number of
-#' principal components.
+#' 
+#' @param data A dataframe containing observed data. Should have column names
+#' \code{.index} for observation times, \code{.value} for observed responses,
+#' and \code{.id} for curve indicators.
 #' @param npc prespecified value for the number of principal components (if
 #' given, this overrides \code{pve}).
-#' @param grid Grid on which estimates should be computed. Defaults to \code{NULL} and returns
-#' estimates on the timepoints in the observed dataset
-#' @param type Type of estimate for the FPCs; either \code{approx} or \code{naive}
+#' @param pve proportion of variance explained; used to choose the number of
+#' principal components.
+#' @param grid Grid on which estimates should be computed. Defaults to
+#' \code{NULL} and returns estimates on the timepoints in the observed dataset
+#' @param type Type of estimate for the FPCs; either \code{approx} or
+#' \code{naive}
 #' @param nbasis Number of basis functions used in spline expansions
 #' @param gm Argument passed to score prediction algorithm
-#' 
-#' @references
-#' Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016).
-#' A note on modeling sparse exponential-family functional response curves. 
-#' \emph{Under Review}.
-#' 
 #' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de}
-#' 
 #' @seealso \code{\link{gfpca_Mar}}, \code{\link{gfpca_Bayes}}.
-#' 
-#' @import mgcv
-#' @import refund
-#' 
-#' @export
-#' 
+#' @references Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016). A note
+#' on modeling sparse exponential-family functional response curves.
+#' \emph{Under Review}.
 #' @examples
+#' 
 #' \dontrun{
 #' library(mvtnorm)
 #' library(boot)
@@ -101,6 +94,10 @@
 #' lines(fit.mar$mu, col=2)
 #' 
 #' }
+#' 
+#' @export gfpca_Mar
+#' @importFrom car logit
+#' @importFrom refund fpca.sc
 gfpca_Mar <- function(data, npc=NULL, pve=.9, grid=NULL, type=c("approx", "naive"),
             nbasis=10, gm=1){
 
@@ -156,8 +153,10 @@ gfpca_Mar <- function(data, npc=NULL, pve=.9, grid=NULL, type=c("approx", "naive
         }
         
       # predict latent trajectories using the HMY approach
-      sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Yi.obs,
-      mu=mu.fit, gs=gm)
+      # sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Yi.obs,
+      # mu=mu.fit, gs=gm)
+      sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Y.obs,
+                   mu=mu.fit, gs=gm)      
       Zg <- sc%*%t(fit.phi[,1:npc])
       Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=T) + Zg
     }
@@ -165,16 +164,18 @@ gfpca_Mar <- function(data, npc=NULL, pve=.9, grid=NULL, type=c("approx", "naive
   else
     {
       # a simple way to get estimates of the eigenfunctions
-      Y.pca <- fpca.sc(Yi.obs, pve=pve, npc=npc)
-
+      # Y.pca <- fpca.sc(Yi.obs, pve=pve, npc=npc)
+      Y.pca <- fpca.sc(Y.obs, pve=pve, npc=npc)
       if(is.null(npc))
         npc <- ncol(Y.pca$efunctions)
 
       # predict latent trajectories using the HMY approach
-      sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Yi.obs,
-      mu=mu.fit, gs=gm)
+      # sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Yi.obs,
+      # mu=mu.fit, gs=gm)
+      sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Y.obs,
+                   mu=mu.fit, gs=gm)      
       Zg <- sc%*%t(Y.pca$efunctions[,1:npc])
-      Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=T) + Zg
+      Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=TRUE) + Zg
     }
 
   ret <- list(mu.fit, Zg, Wg)

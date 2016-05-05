@@ -2,17 +2,17 @@
 #' 
 #' Internal function for prediction of scores using the Hall et al. approach.
 #' 
+#' 
 #' @param ev vector of eigenvalues
 #' @param psi matrix of eigenfunctions
 #' @param Yi.obs matrix of observed data
 #' @param mu mean function
-#' @param gs dispersion parameter (gamma in Hall et al.). This is gm in gfpcaMar. In
-#' the simulation studies this parameter is chosen such the MSE is smallest,
-#' which gives somewhat over-optimistic results for the marginal approach.
-#' 
-#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de} and 
+#' @param gs dispersion parameter (gamma in Hall et al.). This is gm in
+#' gfpcaMar. In the simulation studies this parameter is chosen such the MSE is
+#' smallest, which gives somewhat over-optimistic results for the marginal
+#' approach.
+#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de} and
 #' Ana-Maria Staicu \email{astaicu@@ncsu.edu}
-#' 
 predSc <- function(ev, psi, Yi.obs, mu, gs){
   n <- nrow(Yi.obs)
   Scores <- matrix(NA, n, length(ev))

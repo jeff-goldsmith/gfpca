@@ -8,9 +8,9 @@ gfpca_Mar(data, npc = NULL, pve = 0.9, grid = NULL, type = c("approx",
   "naive"), nbasis = 10, gm = 1)
 }
 \arguments{
-\item{data}{A dataframe containing observed data. Should have column names \code{.index} 
-for observation times, \code{.value} for observed responses, and \code{.id} for curve
-indicators.}
+\item{data}{A dataframe containing observed data. Should have column names
+\code{.index} for observation times, \code{.value} for observed responses,
+and \code{.id} for curve indicators.}
 
 \item{npc}{prespecified value for the number of principal components (if
 given, this overrides \code{pve}).}
@@ -18,20 +18,22 @@ given, this overrides \code{pve}).}
 \item{pve}{proportion of variance explained; used to choose the number of
 principal components.}
 
-\item{grid}{Grid on which estimates should be computed. Defaults to \code{NULL} and returns
-estimates on the timepoints in the observed dataset}
+\item{grid}{Grid on which estimates should be computed. Defaults to
+\code{NULL} and returns estimates on the timepoints in the observed dataset}
 
-\item{type}{Type of estimate for the FPCs; either \code{approx} or \code{naive}}
+\item{type}{Type of estimate for the FPCs; either \code{approx} or
+\code{naive}}
 
 \item{nbasis}{Number of basis functions used in spline expansions}
 
 \item{gm}{Argument passed to score prediction algorithm}
 }
 \description{
-Implements a marginal approach to generalized functional principal components analysis for 
-sparsely observed binary curves
+Implements a marginal approach to generalized functional principal
+components analysis for sparsely observed binary curves
 }
 \examples{
+
 \dontrun{
 library(mvtnorm)
 library(boot)
@@ -102,13 +104,14 @@ plot(mu)
 lines(fit.mar$mu, col=2)
 
 }
+
 }
 \author{
 Jan Gertheiss \email{jan.gertheiss@agr.uni-goettingen.de}
 }
 \references{
-Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016).
-A note on modeling sparse exponential-family functional response curves. 
+Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016). A note
+on modeling sparse exponential-family functional response curves.
 \emph{Under Review}.
 }
 \seealso{
