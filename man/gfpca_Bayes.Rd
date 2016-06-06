@@ -5,7 +5,7 @@
 \title{gfpca_Bayes}
 \usage{
 gfpca_Bayes(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000,
-  warmup = 400)
+  warmup = 400, method = c("vb", "sampling"))
 }
 \arguments{
 \item{data}{A dataframe containing observed data. Should have column names
@@ -22,6 +22,8 @@ and \code{.id} for curve indicators.}
 \item{iter}{Number of sampler iterations}
 
 \item{warmup}{Number of iterations discarded as warmup}
+
+\item{method}{Bayesian fitting method; \code{vb} or \code{sampling}}
 }
 \description{
 Implements a Bayesian approach to generalized functional principal

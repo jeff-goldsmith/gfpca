@@ -13,7 +13,10 @@
 #' @param nbasis Number of basis functions used in spline expansions
 #' @param iter Number of sampler iterations
 #' @param warmup Number of iterations discarded as warmup
+#' @param method Bayesian fitting method; \code{vb} or \code{sampling}
+#' 
 #' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de}
+#' 
 #' @references Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016). A note
 #' on modeling sparse exponential-family functional response curves.
 #' \emph{Under Review}.
@@ -91,8 +94,11 @@
 #' @export gfpca_Bayes
 #' @import rstan
 #' @importFrom splines bs
-gfpca_Bayes <- function(data, npc=3, grid = NULL, nbasis=10, iter=1000, warmup=400){
+gfpca_Bayes <- function(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000, warmup = 400, 
+												method = c("vb", "sampling")){
   
+	method = match.arg(method)
+	
   ## implement some data checks
   
   if(is.null(grid)){ grid = sort(unique(data['.index'][[1]])) }
@@ -119,37 +125,23 @@ gfpca_Bayes <- function(data, npc=3, grid = NULL, nbasis=10, iter=1000, warmup=4
   subject.obs = data['.id'][[1]]
   n.total = length(Y.vec.obs)
   
-  # stanfile = file.path("exec", "gfpca.stan")
-  # stanfile = system.file(stanfile, package = "gfpca")
-  # stanfit <- rstan::stanc_builder(file = stanfile)
-  # stanfit = stan_model(stanfile, model_name = stanfit$model_name)
-  # stanfit$model_cpp <- list(model_cppname = stanfit$model_name, 
-  #                           model_cppcode = stanfit$cppcode)
-  # stanmodels = do.call(
-  #   methods::new, args = c(
-  #   stanfit[-(1:3)], 
-  #   Class = "stanmodel", 
-  #   mk_cppmodule = function(x) get(paste0("model_", model_cppname)))))
-  # stanfit = stanmodels$gfpca
-  
   ## fit model using STAN
   stanfit = gfpca::model_gfpca
-  stanfit = make_stanmodel("gfpca")
-  
+
   dat = list(Y = Y.vec.obs, X = X.des, BS = BS,
              subjId = subject.obs,
              N = n.total, I = I, D = D, p = p, Kt = nbasis, Kp = npc, 
              PenMat = P.mat)
   
-  # GenFPCA.fit = vb(stanfit,
-  #                  data = dat, iter = iter, 
-  #                  verbose = FALSE)
-  
-  GenFPCA.fit = sampling(stanfit,
-                         data = dat, iter = iter,
-                         warmup = warmup,
-                         control = list(adapt_delta = .65),
-                         chains = 1, verbose = FALSE)
+  if (method == "vb"){
+  	GenFPCA.fit = vb(stanfit, data = dat, iter = iter)
+  } else if (method == "sampling") {
+  	GenFPCA.fit = sampling(stanfit,
+                           data = dat, iter = iter,
+                           warmup = warmup,
+                           control = list(adapt_delta = .65),
+                           chains = 1, verbose = FALSE)
+  }
   
   ## post process to obtain point estimates
   beta.post = extract(GenFPCA.fit, "beta")$beta
