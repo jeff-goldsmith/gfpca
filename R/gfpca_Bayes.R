@@ -140,11 +140,15 @@ gfpca_Bayes <- function(data, npc=3, grid = NULL, nbasis=10, iter=1000, warmup=4
              subjId = subject.obs,
              N = n.total, I = I, D = D, p = p, Kt = nbasis, Kp = npc, 
              PenMat = P.mat)
-
+  
+  # GenFPCA.fit = vb(stanfit,
+  #                  data = dat, iter = iter, 
+  #                  verbose = FALSE)
+  
   GenFPCA.fit = sampling(stanfit,
-                         data=dat, iter = iter, 
+                         data = dat, iter = iter,
                          warmup = warmup,
-                         control = list(adapt_delta = .65), 
+                         control = list(adapt_delta = .65),
                          chains = 1, verbose = FALSE)
   
   ## post process to obtain point estimates
@@ -170,6 +174,6 @@ gfpca_Bayes <- function(data, npc=3, grid = NULL, nbasis=10, iter=1000, warmup=4
   ret = list(apply(betaHat.post, 2, mean), Zstan, W.bayes)
   names(ret) = c("mu", "z", "yhat")
   ret
-
-}
   
+}
+
