@@ -98,86 +98,87 @@
 #' @export gfpca_Mar
 #' @importFrom car logit
 #' @importFrom refund fpca.sc
-gfpca_Mar <- function(data, npc=NULL, pve=.9, grid=NULL, type=c("approx", "naive"),
-            nbasis=10, gm=1){
-
-
+gfpca_Mar <- function(data, npc=NULL, pve=.9, grid=NULL, 
+                      type=c("approx", "naive"),
+                      nbasis=10, gm=1){
+  
+  
   # some data checks
   if(is.null(grid)){ grid = sort(unique(data['.index'][[1]])) }
-
+  
   type <- match.arg(type)
   type <- switch(type, approx="approx", naive="naive")
-
+  
   # data
   Y.vec <- data['.value'][[1]]
   t.vec <- data['.index'][[1]]
   id.vec <- data['.id'][[1]]
-
+  
   D <- length(grid)
   I <- length(unique(id.vec))
   Y.obs <- matrix(NA, nrow=I, ncol=D)
-
+  
   for(i in 1:I){
     Yi <- Y.vec[id.vec==i]
     ti <- t.vec[id.vec==i]
     indexi <- sapply(ti, function(t) which(grid==t))
     Y.obs[i,indexi] <- Yi
   }
-
-
+  
+  
   # using gam to estimate the mean function
   out <- gam(Y.vec ~ s(t.vec, k=nbasis))
   mu.fit <- as.vector(predict.gam(out, newdata=data.frame(t.vec = grid)))
   mu.fit <- logit(mu.fit)
-
+  
   if(type=="approx")
+  {
+    # use HMY approach to estimate the eigenfunctions
+    hmy_cov <- covHall(data=data, u=grid, bf=10, pve=pve, eps=0.01,
+                       mu.fit=mu.fit)
+    
+    # obtain spectral decomposition of the covariance of X
+    eigen_HMY = eigen(hmy_cov)
+    fit.lambda = eigen_HMY$values
+    fit.phi =  eigen_HMY$vectors
+    
+    # remove negative eigenvalues
+    wp <- which(fit.lambda >0)
+    fit.lambda_pos = fit.lambda[wp]
+    fit.phi <- fit.phi[,wp]
+    
+    if(is.null(npc))
     {
-      # use HMY approach to estimate the eigenfunctions
-      hmy_cov <- covHall(data=data, u=grid, bf=10, pve=pve, eps=0.01,
-                         mu.fit=mu.fit)
-
-      # obtain spectral decomposition of the covariance of X
-      eigen_HMY = eigen(hmy_cov)
-      fit.lambda = eigen_HMY$values
-      fit.phi =  eigen_HMY$vectors
-
-      # remove negative eigenvalues
-      wp <- which(fit.lambda >0)
-      fit.lambda_pos = fit.lambda[wp]
-      fit.phi <- fit.phi[,wp]
-
-      if(is.null(npc))
-        {
-          # truncate using the cumulative percentage of explained variance
-          npc <- which((cumsum(fit.lambda_pos)/sum(fit.lambda_pos)) > pve)[1]
-        }
-        
-      # predict latent trajectories using the HMY approach
-      # sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Yi.obs,
-      # mu=mu.fit, gs=gm)
-      sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Y.obs,
-                   mu=mu.fit, gs=gm)      
-      Zg <- sc%*%t(fit.phi[,1:npc])
-      Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=T) + Zg
+      # truncate using the cumulative percentage of explained variance
+      npc <- which((cumsum(fit.lambda_pos)/sum(fit.lambda_pos)) > pve)[1]
     }
-
+    
+    # predict latent trajectories using the HMY approach
+    # sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Yi.obs,
+    # mu=mu.fit, gs=gm)
+    sc <- predSc(ev=fit.lambda[1:npc], psi=fit.phi[,1:npc], Y.obs,
+                 mu=mu.fit, gs=gm)      
+    Zg <- sc%*%t(fit.phi[,1:npc])
+    Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=T) + Zg
+  }
+  
   else
-    {
-      # a simple way to get estimates of the eigenfunctions
-      # Y.pca <- fpca.sc(Yi.obs, pve=pve, npc=npc)
-      Y.pca <- fpca.sc(Y.obs, pve=pve, npc=npc)
-      if(is.null(npc))
-        npc <- ncol(Y.pca$efunctions)
-
-      # predict latent trajectories using the HMY approach
-      # sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Yi.obs,
-      # mu=mu.fit, gs=gm)
-      sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Y.obs,
-                   mu=mu.fit, gs=gm)      
-      Zg <- sc%*%t(Y.pca$efunctions[,1:npc])
-      Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=TRUE) + Zg
-    }
-
+  {
+    # a simple way to get estimates of the eigenfunctions
+    # Y.pca <- fpca.sc(Yi.obs, pve=pve, npc=npc)
+    Y.pca <- fpca.sc(Y.obs, pve=pve, npc=npc)
+    if(is.null(npc))
+      npc <- ncol(Y.pca$efunctions)
+    
+    # predict latent trajectories using the HMY approach
+    # sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Yi.obs,
+    # mu=mu.fit, gs=gm)
+    sc <- predSc(ev=Y.pca$evalues[1:npc], psi=Y.pca$efunctions[,1:npc], Y.obs,
+                 mu=mu.fit, gs=gm)      
+    Zg <- sc%*%t(Y.pca$efunctions[,1:npc])
+    Wg <- matrix(rep(mu.fit, I), nrow=I, byrow=TRUE) + Zg
+  }
+  
   ret <- list(mu.fit, Zg, Wg)
   names(ret) <- c("mu", "z", "yhat")
   ret
