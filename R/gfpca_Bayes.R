@@ -132,6 +132,7 @@ gfpca_Bayes <- function(data, npc=3, grid = NULL, nbasis=10, iter=1000, warmup=4
   #   mk_cppmodule = function(x) get(paste0("model_", model_cppname)))))
 
   ## fit model using STAN
+  stanmodels = make_stanmodel("gfpca")
   stanfit = stanmodels$gfpca
   
   dat = list(Y = Y.vec.obs, X = X.des, BS = BS,
@@ -157,7 +158,9 @@ gfpca_Bayes <- function(data, npc=3, grid = NULL, nbasis=10, iter=1000, warmup=4
   
   y.post = z.post = array(NA, dim = c(I, D, dim(c.post)[1]))
   for(i in 1:dim(c.post)[1]) {
-    y.post[,,i] = X.des %*% (beta.post[i,,] %*% t(BS.pen)) + c.post[i,,] %*% (beta_psi.post[i,,] %*% t(BS.pen))
+    y.post[,,i] = X.des %*% (beta.post[i,,] %*% 
+                               t(BS.pen)) + c.post[i,,] %*% 
+      (beta_psi.post[i,,] %*% t(BS.pen))
     z.post[,,i] = c.post[i,,] %*% (beta_psi.post[i,,] %*% t(BS.pen))
   }
   Zstan = apply(z.post, c(1,2), mean)
