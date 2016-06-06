@@ -4,9 +4,11 @@
 #' @return Object of class \code{stanmodel}
 #' @import methods
 make_stanmodel = function(mod_name = "gfpca") {
-  exec_folder = system.file("exec", package = "gfpca")
-  stanfile = file.path(exec_folder, paste0(mod_name, ".stan"))
-  
+  exec_folder = system.file("exec", 
+                            package = "gfpca")
+  stanfile = file.path(exec_folder, 
+                       paste0(mod_name, ".stan"))
+  stopifnot(file.exists(stanfile))
   chunk_fol = system.file("chunks", package = "gfpca") 
 
     
@@ -21,5 +23,7 @@ make_stanmodel = function(mod_name = "gfpca") {
                                   
                                 })
   )
+  names(stanmodels) <- sub("\\.stan$", "", basename(names(stanmodels)))
+  
   return(stanmodels)
 }

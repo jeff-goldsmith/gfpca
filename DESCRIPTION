@@ -1,8 +1,8 @@
 Package: gfpca
 Type: Package
 Title: Generalized Functional Principal Components Analysis
-Version: 1.0
-Date: 2016-04-05
+Version: 1.1.0
+Date: 2016-06-05
 Author: Jeff Goldsmith <arthurjgoldsmith@gmail.com>
 Maintainer: Jeff Goldsmith <arthurjgoldsmith@gmail.com>
 Description: Estimates functional principal components models
