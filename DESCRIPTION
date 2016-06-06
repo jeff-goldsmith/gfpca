@@ -20,6 +20,7 @@ Imports:
   splines,
   refund,
   car
+LazyData: true
 LinkingTo: StanHeaders (>= 2.8.0), rstan (>= 2.8.1), BH (>= 1.58.0),
         Rcpp (>= 0.11.0), RcppEigen
 RcppModules: stan_fit4gfpca_mod

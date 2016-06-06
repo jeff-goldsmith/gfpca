@@ -4,10 +4,12 @@
 \alias{make_stanmodel}
 \title{Make Stan Model from .Stan file}
 \usage{
-make_stanmodel(mod_name = "gfpca")
+make_stanmodel(mod_name = "gfpca", ...)
 }
 \arguments{
 \item{mod_name}{Name of the .stan file}
+
+\item{...}{arguments passed to \code{\link{stan_model}}}
 }
 \value{
 Object of class \code{stanmodel}
