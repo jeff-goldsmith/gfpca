@@ -23,7 +23,7 @@ make_stanmodel = function(mod_name = "gfpca") {
                                   
                                 })
   )
-  names(stanmodels) <- sub("\\.stan$", "", basename(names(stanmodels)))
+  # names(stanmodels) <- mod_name
   
   return(stanmodels)
 }
