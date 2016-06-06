@@ -6,7 +6,7 @@
 \title{gfpca model}
 \format{An object of class \code{"stanmodel"}; see \code{\link[qtl]{read.cross}}.}
 \usage{
-data(gfpca)
+data(model_gfpca)
 }
 \description{
 GFPCA model already compiled

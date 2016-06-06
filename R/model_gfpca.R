@@ -4,7 +4,7 @@
 #'
 #' @docType data
 #'
-#' @usage data(gfpca)
+#' @usage data(model_gfpca)
 #'
 #' @format An object of class \code{"stanmodel"}; see \code{\link[qtl]{read.cross}}.
 #' @examples
