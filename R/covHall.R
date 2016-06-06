@@ -1,21 +1,22 @@
 #' covHall
 #' 
-#' Internal function for estimation of the covariance matrix of the latent 
+#' Internal function for estimation of the covariance matrix of the latent
 #' process using the Hall et al. approach
 #' 
-#' @param data tha data as described in \code{\link{gfpca_Mar}}, 
+#' 
+#' @param data tha data as described in \code{\link{gfpca_Mar}},
 #' \code{\link{gfpca_TwoStep}}, and \code{\link{gfpca_Bayes}}
 #' @param u grid for evaluation
 #' @param bf number of basis functions for smoothing
 #' @param pve percentage of explained variance
-#' @param eps small constant used for the diagonal if diagonal elements are smaller
-#' @param nu additional shrinkage parameter for the estimated mean function (should
-#' usually be 1)
+#' @param eps small constant used for the diagonal if diagonal elements are
+#' smaller
+#' @param nu additional shrinkage parameter for the estimated mean function
+#' (should usually be 1)
 #' @param mu.fit fitted mean function (if available)
-#' 
-#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de} and 
+#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de} and
 #' Ana-Maria Staicu \email{astaicu@@ncsu.edu}
-#' 
+#' @import mgcv
 covHall <- function(data, u, bf=10, pve=.9, eps=0.01, nu=1,
                     mu.fit=NULL){
   
@@ -42,7 +43,7 @@ covHall <- function(data, u, bf=10, pve=.9, eps=0.01, nu=1,
   }
   
   Yi_2 <- sapply(c(1:I), function(k)  Y_miss[k,] %x%   Y_miss[k,])
-  Yi_2mom <- matrix(rowMeans(Yi_2, na.rm=T), ncol=D)
+  Yi_2mom <- matrix(rowMeans(Yi_2, na.rm=TRUE), ncol=D)
   diag(Yi_2mom) <- NA
   
   row.vec <- rep(grid, each = D)       # set up row variable for bivariate smoothing
@@ -52,7 +53,7 @@ covHall <- function(data, u, bf=10, pve=.9, eps=0.01, nu=1,
                                    data.frame(row.vec =rep(u, each=length(u)),col.vec=rep(u, length(u)) )), ncol=length(u))
   Yi_2mom_sm <- (Yi_2mom_sm +t(Yi_2mom_sm))/2
   
-  Y_miss_mean <- colMeans(Y_miss, na.rm=T)
+  Y_miss_mean <- colMeans(Y_miss, na.rm=TRUE)
   Y.mean_sm <- as.vector(predict(gam(Y_miss_mean~s(grid), method="REML"),
                                  newdata=data.frame(grid=u)))
   

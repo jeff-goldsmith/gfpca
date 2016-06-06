@@ -8,14 +8,14 @@ gfpca_Bayes(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000,
   warmup = 400)
 }
 \arguments{
-\item{data}{A dataframe containing observed data. Should have column names \code{.index} 
-for observation times, \code{.value} for observed responses, and \code{.id} for curve
-indicators.}
+\item{data}{A dataframe containing observed data. Should have column names
+\code{.index} for observation times, \code{.value} for observed responses,
+and \code{.id} for curve indicators.}
 
 \item{npc}{Number of FPC basis functions to estimate}
 
-\item{grid}{Grid on which estimates should be computed. Defaults to \code{NULL} and returns
-estimates on the timepoints in the observed dataset}
+\item{grid}{Grid on which estimates should be computed. Defaults to
+\code{NULL} and returns estimates on the timepoints in the observed dataset}
 
 \item{nbasis}{Number of basis functions used in spline expansions}
 
@@ -24,10 +24,11 @@ estimates on the timepoints in the observed dataset}
 \item{warmup}{Number of iterations discarded as warmup}
 }
 \description{
-Implements a Bayesian approach to generalized functional principal components analysis for 
-sparsely observed binary curves
+Implements a Bayesian approach to generalized functional principal
+components analysis for sparsely observed binary curves
 }
 \examples{
+
 \dontrun{
 library(mvtnorm)
 library(boot)
@@ -96,13 +97,14 @@ plot(mu)
 lines(fit.Bayes$mu, col=2)
 
 }
+
 }
 \author{
 Jan Gertheiss \email{jan.gertheiss@agr.uni-goettingen.de}
 }
 \references{
-Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016).
-A note on modeling sparse exponential-family functional response curves. 
+Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016). A note
+on modeling sparse exponential-family functional response curves.
 \emph{Under Review}.
 }
 
