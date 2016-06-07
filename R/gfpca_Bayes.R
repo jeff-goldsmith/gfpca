@@ -126,7 +126,7 @@ gfpca_Bayes <- function(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000, wa
   n.total = length(Y.vec.obs)
   
   ## fit model using STAN
-  stanfit = gfpca::model_gfpca
+  stanfit = stanmodels$gfpca
 
   dat = list(Y = Y.vec.obs, X = X.des, BS = BS,
              subjId = subject.obs,

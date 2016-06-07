@@ -153,7 +153,9 @@ public:
         stan::math::fill(mu_beta,DUMMY_VAR__);
 
         try {
+            current_statement_begin__ = 31;
             for (int k = 1; k <= Kt; ++k) {
+                current_statement_begin__ = 32;
                 stan::math::assign(get_base1_lhs(mu_beta,k,"mu_beta",1), 0);
             }
         } catch (const std::exception& e) {
@@ -343,10 +345,14 @@ throw std::runtime_error("*** IF YOU SEE THIS, PLEASE REPORT A BUG ***");
         stan::math::fill(psi_tau2,DUMMY_VAR__);
 
         try {
+            current_statement_begin__ = 48;
             for (int pcur = 1; pcur <= p; ++pcur) {
+                current_statement_begin__ = 49;
                 stan::math::assign(get_base1_lhs(beta_tau2,pcur,"beta_tau2",1), pow(get_base1(beta_sig,pcur,"beta_sig",1),-(1)));
             }
+            current_statement_begin__ = 52;
             for (int kcur = 1; kcur <= Kp; ++kcur) {
+                current_statement_begin__ = 53;
                 stan::math::assign(get_base1_lhs(psi_tau2,kcur,"psi_tau2",1), pow(get_base1(psi_sig,kcur,"psi_sig",1),-(1)));
             }
         } catch (const std::exception& e) {
@@ -378,22 +384,34 @@ throw std::runtime_error("*** IF YOU SEE THIS, PLEASE REPORT A BUG ***");
 
         // model body
         try {
+            current_statement_begin__ = 64;
             for (int pcur = 1; pcur <= p; ++pcur) {
+                current_statement_begin__ = 65;
                 lp_accum__.add(inv_gamma_log<propto__>(get_base1(beta_sig,pcur,"beta_sig",1), 1, 1));
             }
+            current_statement_begin__ = 70;
             for (int kcur = 1; kcur <= Kp; ++kcur) {
+                current_statement_begin__ = 71;
                 lp_accum__.add(inv_gamma_log<propto__>(get_base1(psi_sig,kcur,"psi_sig",1), 1, 1));
             }
+            current_statement_begin__ = 76;
             for (int pcur = 1; pcur <= p; ++pcur) {
+                current_statement_begin__ = 77;
                 lp_accum__.add(multi_normal_prec_log<propto__>(transpose(get_base1(beta,pcur,"beta",1)), mu_beta, multiply(get_base1(beta_tau2,pcur,"beta_tau2",1),PenMat)));
             }
+            current_statement_begin__ = 81;
             for (int kcur = 1; kcur <= Kp; ++kcur) {
+                current_statement_begin__ = 82;
                 lp_accum__.add(multi_normal_prec_log<propto__>(transpose(get_base1(beta_psi,kcur,"beta_psi",1)), mu_beta, multiply(get_base1(psi_tau2,kcur,"psi_tau2",1),PenMat)));
             }
+            current_statement_begin__ = 86;
             for (int i = 1; i <= I; ++i) {
+                current_statement_begin__ = 87;
                 lp_accum__.add(normal_log<propto__>(get_base1(c,i,"c",1), 0.0, 1.0));
             }
+            current_statement_begin__ = 94;
             for (int i = 1; i <= N; ++i) {
+                current_statement_begin__ = 95;
                 lp_accum__.add(bernoulli_logit_log<propto__>(get_base1(Y,i,"Y",1), (multiply(multiply(get_base1(BS,i,"BS",1),transpose(beta)),get_base1(X,get_base1(subjId,i,"subjId",1),"X",1)) + multiply(multiply(get_base1(BS,i,"BS",1),transpose(beta_psi)),get_base1(c,get_base1(subjId,i,"subjId",1),"c",1)))));
             }
         } catch (const std::exception& e) {
@@ -516,10 +534,14 @@ throw std::runtime_error("*** IF YOU SEE THIS, PLEASE REPORT A BUG ***");
         (void) psi_tau2;  // dummy to suppress unused var warning
 
         try {
+            current_statement_begin__ = 48;
             for (int pcur = 1; pcur <= p; ++pcur) {
+                current_statement_begin__ = 49;
                 stan::math::assign(get_base1_lhs(beta_tau2,pcur,"beta_tau2",1), pow(get_base1(beta_sig,pcur,"beta_sig",1),-(1)));
             }
+            current_statement_begin__ = 52;
             for (int kcur = 1; kcur <= Kp; ++kcur) {
+                current_statement_begin__ = 53;
                 stan::math::assign(get_base1_lhs(psi_tau2,kcur,"psi_tau2",1), pow(get_base1(psi_sig,kcur,"psi_sig",1),-(1)));
             }
         } catch (const std::exception& e) {
