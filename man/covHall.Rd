@@ -4,8 +4,7 @@
 \alias{covHall}
 \title{covHall}
 \usage{
-covHall(data, u, bf = 10, pve = 0.9, eps = 0.01, nu = 1,
-  mu.fit = NULL)
+covHall(data, u, bf = 10, pve = 0.9, eps = 0.01, nu = 1, mu = NULL)
 }
 \arguments{
 \item{data}{tha data as described in \code{\link{gfpca_Mar}},
@@ -23,7 +22,7 @@ smaller}
 \item{nu}{additional shrinkage parameter for the estimated mean function
 (should usually be 1)}
 
-\item{mu.fit}{fitted mean function (if available)}
+\item{mu}{fitted mean function (if available)}
 }
 \description{
 Internal function for estimation of the covariance matrix of the latent

@@ -4,13 +4,13 @@
 \alias{gfpca_Mar}
 \title{gfpca_Mar}
 \usage{
-gfpca_Mar(data, npc = NULL, pve = 0.9, grid = NULL, type = c("approx",
-  "naive"), nbasis = 10, gm = 1)
+gfpca_Mar(data, npc = NULL, pve = 0.9, output_index = NULL,
+  type = c("approx", "naive"), nbasis = 10, gm = 1)
 }
 \arguments{
 \item{data}{A dataframe containing observed data. Should have column names
-\code{.index} for observation times, \code{.value} for observed responses,
-and \code{.id} for curve indicators.}
+\code{index} for observation times, \code{value} for observed responses,
+and \code{id} for curve indicators.}
 
 \item{npc}{prespecified value for the number of principal components (if
 given, this overrides \code{pve}).}
@@ -18,7 +18,7 @@ given, this overrides \code{pve}).}
 \item{pve}{proportion of variance explained; used to choose the number of
 principal components.}
 
-\item{grid}{Grid on which estimates should be computed. Defaults to
+\item{output_index}{Grid on which estimates should be computed. Defaults to
 \code{NULL} and returns estimates on the timepoints in the observed dataset}
 
 \item{type}{Type of estimate for the FPCs; either \code{approx} or
@@ -89,12 +89,12 @@ subject <- rep(1:I, rep(D,I))
 t.vec = rep(grid, I)
 
 data.sparse = data.frame(
-  .index = t.vec,
-  .value = Y.vec,
-  .id = subject
+  index = t.vec,
+  value = Y.vec,
+  id = subject
 )
 
-data.sparse = data.sparse[!is.na(data.sparse$.value),]
+data.sparse = data.sparse[!is.na(data.sparse$value),]
 
 ## fit models
 

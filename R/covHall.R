@@ -13,32 +13,30 @@
 #' smaller
 #' @param nu additional shrinkage parameter for the estimated mean function
 #' (should usually be 1)
-#' @param mu.fit fitted mean function (if available)
+#' @param mu fitted mean function (if available)
 #' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de} and
 #' Ana-Maria Staicu \email{astaicu@@ncsu.edu}
 #' @import mgcv
-covHall <- function(data, u, bf=10, pve=.9, eps=0.01, nu=1,
-                    mu.fit=NULL){
+covHall <- function(data, u, bf = 10, pve = .9, eps = 0.01, nu = 1, mu = NULL){
   
-  Y.vec <- data['.value'][[1]]
-  t.vec <- data['.index'][[1]]
-  id.vec <- data['.id'][[1]]
+  Y.vec <- data['value'][[1]]
+  t.vec <- data['index'][[1]]
+  id.vec <- data['id'][[1]]
   
   grid <- unique(t.vec)
   D <- length(grid)
   I <- length(unique(id.vec))
-  Y_miss <- matrix(NA, nrow=I, ncol=D)
+  Y_miss <- matrix(NA, nrow = I, ncol = D)
   
-  if (length(mu.fit)==0)
-  {
+  if (length(mu) == 0) {
     out <- gam(Y.vec ~ s(t.vec), family = "binomial")
-    mu.fit <- as.vector(predict.gam(out, newdata=data.frame(t.vec = u)))
+    mu <- as.vector(predict.gam(out, newdata = data.frame(t.vec = u)))
   }
   
-  for(i in 1:I){
-    Yi <- Y.vec[id.vec==i]
-    ti <- t.vec[id.vec==i]
-    indexi <- sapply(ti, function(t) which(grid==t))
+  for (i in 1:I) {
+    Yi <- Y.vec[id.vec == i]
+    ti <- t.vec[id.vec == i]
+    indexi <- sapply(ti, function(t) which(grid == t))
     Y_miss[i,indexi] <- Yi
   }
   
@@ -59,7 +57,7 @@ covHall <- function(data, u, bf=10, pve=.9, eps=0.01, nu=1,
   
   Yi.cov_sm <- Yi_2mom_sm - matrix(Y.mean_sm, ncol=1)%*%matrix(Y.mean_sm, nrow=1)
   
-  Zi.cov_sm <- diag(1/deriv.inv.logit(nu*mu.fit)) %*% Yi.cov_sm %*%diag(1/deriv.inv.logit(nu*mu.fit))
+  Zi.cov_sm <- diag(1/deriv.inv.logit(nu*mu)) %*% Yi.cov_sm %*%diag(1/deriv.inv.logit(nu*mu))
   
   ddd <- diag(Zi.cov_sm)
   diag(Zi.cov_sm) <- ifelse(ddd<eps, eps, ddd)
