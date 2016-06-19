@@ -5,13 +5,13 @@
 #' 
 #' 
 #' @param data A dataframe containing observed data. Should have column names
-#' \code{.index} for observation times, \code{.value} for observed responses,
-#' and \code{.id} for curve indicators.
+#' \code{index} for observation times, \code{value} for observed responses,
+#' and \code{id} for curve indicators.
 #' @param npc prespecified value for the number of principal components (if
 #' given, this overrides \code{pve}).
 #' @param pve proportion of variance explained; used to choose the number of
 #' principal components.
-#' @param grid Grid on which estimates should be computed. Defaults to
+#' @param output_index Grid on which estimates should be computed. Defaults to
 #' \code{NULL} and returns estimates on the timepoints in the observed dataset
 #' @param type Type of estimate for the FPCs; either \code{approx} or
 #' \code{naive}
@@ -80,12 +80,12 @@
 #' t.vec = rep(grid, I)
 #' 
 #' data.sparse = data.frame(
-#'   .index = t.vec,
-#'   .value = Y.vec,
-#'   .id = subject
+#'   index = t.vec,
+#'   value = Y.vec,
+#'   id = subject
 #' )
 #' 
-#' data.sparse = data.sparse[!is.na(data.sparse$.value),]
+#' data.sparse = data.sparse[!is.na(data.sparse$value),]
 #' 
 #' ## fit models
 #' 
@@ -104,150 +104,117 @@
 #' @export gfpca_TwoStep
 #' @importFrom gamm4 gamm4
 #' @import Rcpp
-gfpca_TwoStep <-  function(data, npc=NULL, pve=.9, grid=NULL, 
+gfpca_TwoStep <-  function(data, npc = NULL, pve = .9, output_index = NULL, 
                            type=c("approx", "naive", "fixed"),
                            basis=NULL, nbasis=10){
   
   
   # some data checks
-  if(is.null(grid)){ grid = sort(unique(data['.index'][[1]])) }
+  if (is.null(output_index)) { output_index = sort(unique(data['index'][[1]])) }
   
   type <- match.arg(type)
-  type <- switch(type, approx="approx", naive="naive", fixed="fixed")
+  type <- switch(type, approx = "approx", naive = "naive", fixed = "fixed")
   
   # data
-  Y.vec <- data['.value'][[1]]
-  t.vec <- data['.index'][[1]]
-  id.vec <- data['.id'][[1]]
+  Y.vec <- data['value'][[1]]
+  input_index <- data['index'][[1]]
+  id.vec <- data['id'][[1]]
   
-  D <- length(grid)
+  D <- length(output_index)
   I <- length(unique(id.vec))
-  Y.obs <- matrix(NA, nrow=I, ncol=D)
+  Y.obs <- matrix(NA, nrow = I, ncol = D)
   
-  for(i in 1:I){
-    Yi <- Y.vec[id.vec==i]
-    ti <- t.vec[id.vec==i]
-    indexi <- sapply(ti, function(t) which(grid==t))
+  for (i in 1:I) {
+    Yi <- Y.vec[id.vec == i]
+    ti <- input_index[id.vec == i]
+    indexi <- sapply(ti, function(t) which(output_index == t))
     Y.obs[i,indexi] <- Yi
   }
   
-  # Y.vec <- as.vector(t(Yi.obs))
-  Y.vec = as.vector(t(Y.obs))
-  subject <- rep(1:I, rep(D,I))
-  t.vec = rep(grid, I)
+  dta = data.frame(
+    value = as.vector(t(Y.obs)),
+    id = rep(1:I, rep(D,I)),
+    index = rep(output_index, I)
+  )
   
-  if (type=="naive")
-  {
+  # obtain efunctions and evalues using selected method
+  if (type == "naive") {
     # a simple way to get estimates of the eigenfunctions
     # Y.pca <- fpca.sc(Yi.obs, pve=pve, npc=npc)
-    Y.pca <- fpca.sc(Y.obs, pve=pve, npc=npc)
+    Y.pca <- fpca.sc(Y.obs, pve = pve, npc = npc)
     npc <- ncol(Y.pca$efunctions)
-    
-    # construct elements for fitting using mixed model
-    dta <- data.frame(Y.vec, t.vec, subject=as.factor(subject))
-    for(i in 1:npc)
-    {
-      dta <- cbind(dta,rep(Y.pca$efunctions[,i],I))
-    }
-    names(dta) <- c("Y.vec", "t.vec", "subject", paste0("psi", 1:npc))
-    
-    random.structure = paste(paste0("psi", 1:npc), collapse = "+")
-    random.formula = formula(paste("~(0+", random.structure, "|| subject)"))
-    
-    # fit using mixed model
-    outre1 <- gamm4(Y.vec ~ s(t.vec, k=nbasis), family = "binomial", data=dta,
-                    random = random.formula)
-    
-    Z.gamm.fpca <- as.matrix(coef(outre1$mer)$subject[,npc:1])%*%t(Y.pca$efunctions[,1:npc])
-    FIT.MU.gamm.fpca <- as.vector(predict.gam(outre1$gam, newdata=data.frame(t.vec = grid)))
-    W.gamm.fpca <- matrix(rep(FIT.MU.gamm.fpca, I), nrow=I, byrow=TRUE) + Z.gamm.fpca
-    
-    ret <- list(FIT.MU.gamm.fpca, Z.gamm.fpca, W.gamm.fpca)
-    names(ret) <- c("mu", "z", "yhat")
-  }
-  
-  else if (type=="approx")
-  {
+
+    efunctions = Y.pca$efunctions[,1:npc]
+    evalues = Y.pca$evalues[1:npc]
+  } else if (type == "approx") {
     # use HMY approach to estimate the eigenfunctions
-    hmy_cov <- covHall(data=data, u=grid, bf=10, pve=pve, eps=0.01, nu=1)
+    hmy_cov <- covHall(data = data, u = output_index, bf = 10, pve = pve, eps = 0.01, nu = 1)
     
     # obtain spectral decomposition of the covariance of X
     eigen_HMY = eigen(hmy_cov)
     fit.lambda = eigen_HMY$values
-    fit.phi =  eigen_HMY$vectors
+    fit.phi = eigen_HMY$vectors
     
     # remove negative eigenvalues
-    wp <- which(fit.lambda >0)
+    wp <- which(fit.lambda > 0)
     fit.lambda_pos = fit.lambda[wp]
     fit.phi <- fit.phi[,wp]
     
-    if(is.null(npc))
-    {
+    if (is.null(npc)) {
       # truncate using the cumulative percentage of explained variance
       npc <- which((cumsum(fit.lambda_pos)/sum(fit.lambda_pos)) > pve)[1]
     }
     
-    # construct elements for fitting using mixed model
-    dta <- data.frame(Y.vec, t.vec, subject=as.factor(subject))
-    for(i in 1:npc)
-    {
-      dta <- cbind(dta,rep(fit.phi[,i],I))
-    }
-    names(dta) <- c("Y.vec", "t.vec", "subject", paste0("psi", 1:npc))
-    
-    random.structure = paste(paste0("psi", 1:npc), collapse = "+")
-    random.formula = formula(paste("~(0+", random.structure, "|| subject)"))
-    
-    
-    # fit using mixed model
-    outre2 <- gamm4(Y.vec ~ s(t.vec, k=nbasis), family = "binomial", data=dta,
-                    random = random.formula)
-    
-    Z.gamm.hmy <- as.matrix(coef(outre2$mer)$subject[,npc:1])%*%t(fit.phi[,1:npc])
-    FIT.MU.gamm.hmy <- as.vector(predict.gam(outre2$gam, newdata=data.frame(t.vec = grid)))
-    W.gamm.hmy <- matrix(rep(FIT.MU.gamm.hmy, I), nrow=I, byrow=TRUE) + Z.gamm.hmy
-    
-    ret <- list(FIT.MU.gamm.hmy, Z.gamm.hmy, W.gamm.hmy)
-    names(ret) <- c("mu", "z", "yhat")
-  }
-  
-  else
-  {
+    efunctions = fit.phi[,1:npc]
+    evalues = fit.lambda[1:npc]
+  } else {
     if (is.null(basis))
       stop("basis has to be supplied if type = fixed")
-    if (nrow(basis)!=D)
+    if (nrow(basis) != D)
       stop("nrow(basis) has to match grid")
     
     if (!is.null(npc) && (ncol(basis) != npc))
       stop("ncol(basis) has to match npc")
     else
       npc <- ncol(basis)
-    
-    
-    # construct elements for fitting using mixed model
-    dta <- data.frame(Y.vec, t.vec, subject=as.factor(subject))
-    for(i in 1:npc)
-    {
-      dta <- cbind(dta,rep(basis[,i],I))
-    }
-    names(dta) <- c("Y.vec", "t.vec", "subject", paste0("psi", 1:npc))
-    
-    random.structure = paste(paste0("psi", 1:npc), collapse = "+")
-    random.formula = formula(paste("~(0+", random.structure, "|| subject)"))
-    
-    
-    # fit using mixed model
-    outre3 <- gamm4(Y.vec ~ s(t.vec, k=nbasis), family = "binomial", data=dta,
-                    random = random.formula)
-    
-    Z.gamm.fixed <- as.matrix(coef(outre3$mer)$subject[,npc:1])%*%t(basis[,1:npc])
-    FIT.MU.gamm.fixed <- as.vector(predict.gam(outre3$gam, newdata=data.frame(t.vec = grid)))
-    W.gamm.fixed <- matrix(rep(FIT.MU.gamm.fixed, I), nrow=I, byrow=TRUE) + Z.gamm.fixed
-    
-    ret <- list(FIT.MU.gamm.fixed, Z.gamm.fixed, W.gamm.fixed)
-    names(ret) <- c("mu", "z", "yhat")
+  
+    efunctions = basis[,1:npc]
+    evalues = NULL
   }
   
-  ret
+  # construct elements for fitting using mixed model
+  for (i in 1:npc) {
+    dta <- cbind(dta, rep(efunctions[,i], I))
+  }
+  names(dta)[4:(4 + npc - 1)] <- c(paste0("psi", 1:npc))
+  
+  random.structure = paste(paste0("psi", 1:npc), collapse = "+")
+  random.formula = formula(paste("~(0+", random.structure, "|| id)"))
+  
+  # fit using mixed model
+  outre <- gamm4(value ~ s(index, k = nbasis), family = "binomial", data = dta,
+                 random = random.formula)
+  
+  scores = as.matrix(coef(outre$mer)$id[,npc:1])
+  Z.gamm.fpca <- scores %*% t(efunctions[,1:npc])
+  mu <- as.vector(predict.gam(outre$gam, newdata = data.frame(index = output_index)))
+  Yhat <- matrix(rep(mu, I), nrow = I, byrow = TRUE) + Z.gamm.fpca
+  
+  ## format output
+  Y = data
+  index = output_index
+  
+  Yhat = data.frame(
+    value = as.vector(t(Yhat)),
+    index = rep(output_index, I),
+    id = rep(1:I, each = D)
+  )
+  
+  ret.objects = c("Yhat", "Y", "scores", "mu", "efunctions", "evalues", "npc", "index")
+  ret = lapply(1:length(ret.objects), function(u) get(ret.objects[u]))
+  names(ret) = ret.objects
+  class(ret) = "fpca"
+  return(ret)
+  
 }
 
