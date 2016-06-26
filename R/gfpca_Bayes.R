@@ -5,15 +5,15 @@
 #' 
 #' 
 #' @param data A dataframe containing observed data. Should have column names
-#' \code{.index} for observation times, \code{.value} for observed responses,
-#' and \code{.id} for curve indicators.
-#' @param npc Number of FPC basis functions to estimate
-#' @param grid Grid on which estimates should be computed. Defaults to
+#' \code{index} for observation times, \code{value} for observed responses,
+#' and \code{id} for curve indicators.
+#' @param npc Number of FPC basis functions to estimate; defaults to 3
+#' @param output_index Grid on which estimates should be computed. Defaults to
 #' \code{NULL} and returns estimates on the timepoints in the observed dataset
-#' @param nbasis Number of basis functions used in spline expansions
-#' @param iter Number of sampler iterations
-#' @param warmup Number of iterations discarded as warmup
-#' @param method Bayesian fitting method; \code{vb} or \code{sampling}
+#' @param nbasis Number of basis functions used in spline expansions; defaults to 10
+#' @param iter Number of sampler iterations; defaults to 1000
+#' @param warmup Number of iterations discarded as warmup; defaults to 400
+#' @param method Bayesian fitting method; \code{vb} (default) or \code{sampling}
 #' 
 #' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de}
 #' 
@@ -77,12 +77,12 @@
 #' t.vec = rep(grid, I)
 #' 
 #' data.sparse = data.frame(
-#'   .index = t.vec,
-#'   .value = Y.vec,
-#'   .id = subject
+#'   index = t.vec,
+#'   value = Y.vec,
+#'   id = subject
 #' )
 #' 
-#' data.sparse = data.sparse[!is.na(data.sparse$.value),]
+#' data.sparse = data.sparse[!is.na(data.sparse$value),]
 #' 
 #' ## fit Bayesian models
 #' fit.Bayes = gfpca_Bayes(data = data.sparse)
@@ -94,46 +94,46 @@
 #' @export gfpca_Bayes
 #' @import rstan
 #' @importFrom splines bs
-gfpca_Bayes <- function(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000, warmup = 400, 
+gfpca_Bayes <- function(data, npc = 3, output_index = NULL, nbasis = 10, iter = 1000, warmup = 400, 
 												method = c("vb", "sampling")){
   
 	method = match.arg(method)
 	
   ## implement some data checks
   
-  if(is.null(grid)){ grid = sort(unique(data['.index'][[1]])) }
+  if (is.null(output_index)) { output_index = sort(unique(data['index'][[1]])) }
   
-  I = length(unique(data['.id'][[1]]))
-  D = length(grid)
+  I = length(unique(data['id'][[1]]))
+  D = length(output_index)
   
   X.des = matrix(1, nrow = I, ncol = 1)
   p = 1
   
-  BS.pen = bs(grid, df=nbasis, intercept=TRUE, degree=3)
-  BS = bs(data['.index'][[1]], df=nbasis, intercept=TRUE, degree=3)
+  BS_fit = bs(data['index'][[1]], df = nbasis, intercept = TRUE, degree = 3)
+  BS_output = bs(output_index, df = nbasis, intercept = TRUE, degree = 3)
   
   alpha = .1
   diff0 = diag(1, D, D)
-  diff2 = matrix(rep(c(1,-2,1, rep(0, D-2)), D-2)[1:((D-2)*D)], D-2, D, byrow = TRUE)
-  P0 = t(BS.pen) %*% t(diff0) %*% diff0 %*% BS.pen
-  P2 = t(BS.pen) %*% t(diff2) %*% diff2 %*% BS.pen
-  P.mat = alpha * P0 + (1-alpha) * P2
+  diff2 = matrix(rep(c(1, -2, 1, rep(0, D - 2)), D - 2)[1:((D - 2)*D)], D - 2, D, byrow = TRUE)
+  P0 = t(BS_output) %*% t(diff0) %*% diff0 %*% BS_output
+  P2 = t(BS_output) %*% t(diff2) %*% diff2 %*% BS_output
+  P.mat = alpha * P0 + (1 - alpha) * P2
   
   
   ## format sparse data for stan fitting
-  Y.vec.obs = data['.value'][[1]]
-  subject.obs = data['.id'][[1]]
+  Y.vec.obs = data['value'][[1]]
+  subject.obs = data['id'][[1]]
   n.total = length(Y.vec.obs)
   
   ## fit model using STAN
   stanfit = stanmodels$gfpca
 
-  dat = list(Y = Y.vec.obs, X = X.des, BS = BS,
+  dat = list(Y = Y.vec.obs, X = X.des, BS = BS_fit,
              subjId = subject.obs,
              N = n.total, I = I, D = D, p = p, Kt = nbasis, Kp = npc, 
              PenMat = P.mat)
   
-  if (method == "vb"){
+  if (method == "vb") {
   	GenFPCA.fit = vb(stanfit, data = dat, iter = iter)
   } else if (method == "sampling") {
   	GenFPCA.fit = sampling(stanfit,
@@ -149,23 +149,41 @@ gfpca_Bayes <- function(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000, wa
   c.post = extract(GenFPCA.fit, "c")$c
   
   betaHat.post = array(NA, dim = c(p, D, dim(c.post)[1]))
-  for(i in 1:dim(c.post)[1]) {
-    betaHat.post[,,i] = (beta.post[i,,] %*% t(BS.pen))
+  for (i in 1:dim(c.post)[1]) {
+    betaHat.post[,,i] = (beta.post[i,,] %*% t(BS_output))
   }
   
   y.post = z.post = array(NA, dim = c(I, D, dim(c.post)[1]))
-  for(i in 1:dim(c.post)[1]) {
+  for (i in 1:dim(c.post)[1]) {
     y.post[,,i] = X.des %*% (beta.post[i,,] %*% 
-                               t(BS.pen)) + c.post[i,,] %*% 
-      (beta_psi.post[i,,] %*% t(BS.pen))
-    z.post[,,i] = c.post[i,,] %*% (beta_psi.post[i,,] %*% t(BS.pen))
+                               t(BS_output)) + c.post[i,,] %*% 
+      (beta_psi.post[i,,] %*% t(BS_output))
+    z.post[,,i] = c.post[i,,] %*% (beta_psi.post[i,,] %*% t(BS_output))
   }
-  Zstan = apply(z.post, c(1,2), mean)
-  W.bayes = apply(y.post, c(1,2), mean)
+  z_pm = apply(z.post, c(1,2), mean)
+  Yhat_matrix = apply(y.post, c(1,2), mean)
   
-  ret = list(apply(betaHat.post, 2, mean), Zstan, W.bayes)
-  names(ret) = c("mu", "z", "yhat")
-  ret
+  ## obtain orthogonal estimate of FPC quantities
+  decomp = svd(z_pm)
+  evalues = decomp$d[1:npc]
+  efunctions = decomp$v[, 1:npc]
+  scores = decomp$u[, 1:npc]
+  
+  ## format output
+  mu = as.vector(apply(betaHat.post, c(1,2), mean))
+  Y = data
+  index = output_index
+  Yhat = data.frame(
+    value = as.vector(t(Yhat_matrix)),
+    index = rep(output_index, I),
+    id = rep(1:I, each = D)
+  )
+  
+  ret.objects = c("Yhat", "Y", "scores", "mu", "efunctions", "evalues", "npc", "index")
+  ret = lapply(1:length(ret.objects), function(u) get(ret.objects[u]))
+  names(ret) = ret.objects
+  class(ret) = "fpca"
+  return(ret)
   
 }
 

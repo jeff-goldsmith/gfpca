@@ -4,26 +4,26 @@
 \alias{gfpca_Bayes}
 \title{gfpca_Bayes}
 \usage{
-gfpca_Bayes(data, npc = 3, grid = NULL, nbasis = 10, iter = 1000,
-  warmup = 400, method = c("vb", "sampling"))
+gfpca_Bayes(data, npc = 3, output_index = NULL, nbasis = 10,
+  iter = 1000, warmup = 400, method = c("vb", "sampling"))
 }
 \arguments{
 \item{data}{A dataframe containing observed data. Should have column names
-\code{.index} for observation times, \code{.value} for observed responses,
-and \code{.id} for curve indicators.}
+\code{index} for observation times, \code{value} for observed responses,
+and \code{id} for curve indicators.}
 
-\item{npc}{Number of FPC basis functions to estimate}
+\item{npc}{Number of FPC basis functions to estimate; defaults to 3}
 
-\item{grid}{Grid on which estimates should be computed. Defaults to
+\item{output_index}{Grid on which estimates should be computed. Defaults to
 \code{NULL} and returns estimates on the timepoints in the observed dataset}
 
-\item{nbasis}{Number of basis functions used in spline expansions}
+\item{nbasis}{Number of basis functions used in spline expansions; defaults to 10}
 
-\item{iter}{Number of sampler iterations}
+\item{iter}{Number of sampler iterations; defaults to 1000}
 
-\item{warmup}{Number of iterations discarded as warmup}
+\item{warmup}{Number of iterations discarded as warmup; defaults to 400}
 
-\item{method}{Bayesian fitting method; \code{vb} or \code{sampling}}
+\item{method}{Bayesian fitting method; \code{vb} (default) or \code{sampling}}
 }
 \description{
 Implements a Bayesian approach to generalized functional principal
@@ -86,12 +86,12 @@ subject <- rep(1:I, rep(D,I))
 t.vec = rep(grid, I)
 
 data.sparse = data.frame(
-  .index = t.vec,
-  .value = Y.vec,
-  .id = subject
+  index = t.vec,
+  value = Y.vec,
+  id = subject
 )
 
-data.sparse = data.sparse[!is.na(data.sparse$.value),]
+data.sparse = data.sparse[!is.na(data.sparse$value),]
 
 ## fit Bayesian models
 fit.Bayes = gfpca_Bayes(data = data.sparse)
