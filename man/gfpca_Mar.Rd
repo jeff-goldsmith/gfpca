@@ -37,6 +37,7 @@ components analysis for sparsely observed binary curves
 \dontrun{
 library(mvtnorm)
 library(boot)
+library(refund.shiny)
 
 ## set simulation design elements
 
@@ -102,6 +103,7 @@ data.sparse = data.sparse[!is.na(data.sparse$value),]
 fit.mar = gfpca_Mar(data = data.sparse, type="approx")
 plot(mu)
 lines(fit.mar$mu, col=2)
+plot_shiny(fit.mar)
 
 }
 

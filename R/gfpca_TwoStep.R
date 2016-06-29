@@ -28,6 +28,7 @@
 #' \dontrun{
 #' library(mvtnorm)
 #' library(boot)
+#' library(refund.shiny)
 #' 
 #' ## set simulation design elements
 #' 
@@ -98,6 +99,7 @@
 #' fit.2step = gfpca_TwoStep(data = data.sparse, type="approx")
 #' plot(mu)
 #' lines(fit.2step$mu, col=2)
+#' plot_shiny(fit.2step)
 #' 
 #' }
 #' 
@@ -203,14 +205,14 @@ gfpca_TwoStep <-  function(data, npc = NULL, pve = .9, output_index = NULL,
   ## format output
   Y = data
   index = output_index
-  
+  family = "binomial"
   Yhat = data.frame(
     value = as.vector(t(Yhat)),
     index = rep(output_index, I),
     id = rep(1:I, each = D)
   )
   
-  ret.objects = c("Yhat", "Y", "scores", "mu", "efunctions", "evalues", "npc", "index")
+  ret.objects = c("Yhat", "Y", "scores", "mu", "efunctions", "evalues", "npc", "index", "family")
   ret = lapply(1:length(ret.objects), function(u) get(ret.objects[u]))
   names(ret) = ret.objects
   class(ret) = "fpca"

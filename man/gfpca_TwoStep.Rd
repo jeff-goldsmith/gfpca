@@ -38,6 +38,7 @@ components analysis for sparsely observed binary curves
 \dontrun{
 library(mvtnorm)
 library(boot)
+library(refund.shiny)
 
 ## set simulation design elements
 
@@ -108,6 +109,7 @@ lines(fit.2step$mu, col=2)
 fit.2step = gfpca_TwoStep(data = data.sparse, type="approx")
 plot(mu)
 lines(fit.2step$mu, col=2)
+plot_shiny(fit.2step)
 
 }
 

@@ -34,6 +34,7 @@ components analysis for sparsely observed binary curves
 \dontrun{
 library(mvtnorm)
 library(boot)
+library(refund.shiny)
 
 ## set simulation design elements
 
@@ -97,12 +98,12 @@ data.sparse = data.sparse[!is.na(data.sparse$value),]
 fit.Bayes = gfpca_Bayes(data = data.sparse)
 plot(mu)
 lines(fit.Bayes$mu, col=2)
-
+plot_shiny(fit.Bayes)
 }
 
 }
 \author{
-Jan Gertheiss \email{jan.gertheiss@agr.uni-goettingen.de}
+Jeff Goldsmith \email{jeff.goldsmith@columbia.edu} and John Muschelli
 }
 \references{
 Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016). A note

@@ -15,7 +15,7 @@
 #' @param warmup Number of iterations discarded as warmup; defaults to 400
 #' @param method Bayesian fitting method; \code{vb} (default) or \code{sampling}
 #' 
-#' @author Jan Gertheiss \email{jan.gertheiss@@agr.uni-goettingen.de}
+#' @author Jeff Goldsmith \email{jeff.goldsmith@@columbia.edu} and John Muschelli
 #' 
 #' @references Gertheiss, J., Goldsmith, J., and Staicu, A.-M. (2016). A note
 #' on modeling sparse exponential-family functional response curves.
@@ -25,6 +25,7 @@
 #' \dontrun{
 #' library(mvtnorm)
 #' library(boot)
+#' library(refund.shiny)
 #' 
 #' ## set simulation design elements
 #' 
@@ -88,7 +89,7 @@
 #' fit.Bayes = gfpca_Bayes(data = data.sparse)
 #' plot(mu)
 #' lines(fit.Bayes$mu, col=2)
-#' 
+#' plot_shiny(fit.Bayes)
 #' }
 #' 
 #' @export gfpca_Bayes
@@ -173,13 +174,14 @@ gfpca_Bayes <- function(data, npc = 3, output_index = NULL, nbasis = 10, iter = 
   mu = as.vector(apply(betaHat.post, c(1,2), mean))
   Y = data
   index = output_index
+  family = "binomial"
   Yhat = data.frame(
     value = as.vector(t(Yhat_matrix)),
     index = rep(output_index, I),
     id = rep(1:I, each = D)
   )
   
-  ret.objects = c("Yhat", "Y", "scores", "mu", "efunctions", "evalues", "npc", "index")
+  ret.objects = c("Yhat", "Y", "scores", "mu", "efunctions", "evalues", "npc", "index", "family")
   ret = lapply(1:length(ret.objects), function(u) get(ret.objects[u]))
   names(ret) = ret.objects
   class(ret) = "fpca"
