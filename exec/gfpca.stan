@@ -29,7 +29,7 @@ transformed data {
   vector[Kt] mu_beta;                       // prior mean for spline effects
   
   for (k in 1:Kt) {
-    mu_beta[k] <- 0;
+    mu_beta[k] = 0;
   }
 }
 
@@ -46,11 +46,11 @@ transformed parameters {
   vector<lower=0.01>[Kp] psi_tau2;    // tuning parameter
   
   for(pcur in 1:p) {
-    beta_tau2[pcur] <- pow(beta_sig[pcur], -1);
+    beta_tau2[pcur] = pow(beta_sig[pcur], -1);
   }
   
   for(kcur in 1:Kp) {
-    psi_tau2[kcur] <- pow(psi_sig[kcur], -1);
+    psi_tau2[kcur] = pow(psi_sig[kcur], -1);
   }	
 }
 

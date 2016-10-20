@@ -127,9 +127,8 @@ gfpca_Mar <- function(data, npc=NULL, pve=.9, output_index=NULL,
   }
   
   # using gam to estimate the mean function
-  mean_model <- gam(Y.vec ~ s(t.vec, k = nbasis))
-  mu <- as.vector(predict.gam(mean_model, newdata = data.frame(t.vec = output_index)))
-  mu <- logit(mu)
+  mean_model <- out <- gam(Y.vec ~ s(t.vec, k = 10), family = "binomial")
+  mu <- as.vector(predict.gam(out, newdata = data.frame(t.vec = output_index)))
   
   if (type == "approx") {
     # use HMY approach to estimate the eigenfunctions
@@ -153,10 +152,7 @@ gfpca_Mar <- function(data, npc=NULL, pve=.9, output_index=NULL,
     
     efunctions = fit.phi[,1:npc]
     evalues = fit.lambda[1:npc]
-  }
-  
-  else
-  {
+  } else {
     # a simple way to get estimates of the eigenfunctions
     Y.pca <- fpca.sc(Y.obs, pve = pve, npc = npc)
     if (is.null(npc)) {npc <- ncol(Y.pca$efunctions)}
